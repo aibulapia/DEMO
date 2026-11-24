@@ -88,7 +88,7 @@
       <img class="logo" src="img/app-icon.png" alt="">
       <h1>Safety Stock</h1>
       <p>안전용품 재고관리 — 폰과 PC에서 하나로</p>
-      <div class="pills"><span>📱 입고·출고</span><span>🖥 재고·품목·보고서</span><span>무료 · 설치형 웹앱</span></div>
+      <div class="pills"><span>📱 입고·출고</span><span>🖥 품목·보고서</span><span>무료 웹앱</span></div>
     </div>
 
     <div class="device phone" id="phone"><div class="screen" id="phoneScreen"><div class="tap" id="phoneTap"></div></div></div>
@@ -119,16 +119,16 @@
 const SCENES = [
   { name: '시작', dev: 'intro', shots: [{ t: 3 }], cap: '' },
   { name: '설치·로그인', dev: 'phone', label: '📱 스마트폰',
-    cap: 'QR 찍고 로그인<small>앱처럼 홈 화면에 설치해서 바로 실행</small>',
+    cap: 'QR 로그인',
     shots: [{ img: 'm_qr', t: 2, x: .5, y: .444 }, { img: 'm_home', t: 2, x: .732, y: .27 }] }, // 로그인 화면은 뺌 (총 30초 유지)
   { name: '입고·출고', dev: 'phone', label: '📱 스마트폰',
-    cap: '여러 품목을 장바구니에 담아 한 번에<small>같은 품명은 묶어서 규격 버튼으로 · 부서·수령인은 한 번만</small>',
+    cap: '장바구니 기능',
     shots: [{ img: 'm_out_spec', t: 2.8, x: .756, y: .308 }, { img: 'm_out_cart', t: 3, x: .5, y: .878 }, { img: 'm_out_saved', t: 2.2, x: .5, y: .94 }] },
   { name: '재고·품목 정보', dev: 'pc', label: '🖥 PC',
-    cap: '분류별 재고와 부족 품목이 한눈에<small>품목을 누르면 사진·정보 창 — 오른쪽 칸에서 바로 입고·출고</small>',
+    cap: '안전재고 알림',
     shots: [{ img: 'pc_stock', t: 2.5, x: .78, y: .453 }, { img: 'pc_item', t: 2.4, x: .185, y: .917 }, { img: 'pc_item_side', t: 2.1, x: .824, y: .712 }] },
   { name: '보고서', dev: 'pc', label: '🖥 PC',
-    cap: '사진 들어간 엑셀 보고서를 바로<small>기간을 고르고 만들기 → 미리 보고 엑셀 다운로드</small>',
+    cap: '엑셀 보고서 생성',
     // 보고서 만들기 → 엑셀 화면 (사용자 승인·품목 채우기 화면은 뺌, 총 30초 유지). z = 휴대폰 폭 확대 배율
     shots: [{ img: 'pc_report', t: 3, x: .83, y: .913 }, { img: 'pc_excel', t: 3, x: .654, y: .802, fx: .17, fy: .55 }] },
   { name: '끝', dev: 'outro', shots: [{ t: 2 }], cap: '' },
