@@ -130,7 +130,7 @@ const SCENES = [
   { name: '보고서', dev: 'pc', label: '🖥 PC',
     cap: '사진 들어간 엑셀 보고서를 바로<small>기간을 고르고 만들기 → 미리 보고 엑셀 다운로드</small>',
     // 보고서 만들기 → 엑셀 화면 (사용자 승인·품목 채우기 화면은 뺌, 총 30초 유지). z = 휴대폰 폭 확대 배율
-    shots: [{ img: 'pc_report', t: 3, x: .83, y: .913 }, { img: 'pc_excel', t: 3, x: .654, y: .802, z: 1.5 }] },
+    shots: [{ img: 'pc_report', t: 3, x: .83, y: .913 }, { img: 'pc_excel', t: 3, x: .654, y: .802, fx: .17, fy: .55 }] },
   { name: '끝', dev: 'outro', shots: [{ t: 2 }], cap: '' },
 ];
 const $ = (s) => document.querySelector(s);
@@ -170,10 +170,11 @@ function fitM() {
   const pc = sc.dev === 'pc';
   const r = im.naturalWidth ? im.naturalHeight / im.naturalWidth : RATIO[pc ? 'pc' : 'phone'];
   let w = W * (pc ? (s.z || 2.3) : 1); let h = w * r;
-  if (h < H) { h = H; w = h / r; } // 칸보다 낮으면 높이에 맞춰 키움 (빈 곳 없게)
+  if (h < H && !s.wide) { h = H; w = h / r; } // 칸보다 낮으면 높이에 맞춰 키움 (빈 곳 없게). wide 화면은 그대로 두고 위아래 가운데
   const x = s.x != null ? s.x : .5; const y = s.y != null ? s.y : 0;
-  const left = Math.min(0, Math.max(W - w, W / 2 - x * w));
-  const top = Math.min(0, Math.max(H - h, H / 2 - y * h));
+  const fx = s.fx != null ? s.fx : x; const fy = s.fy != null ? s.fy : y; // 휴대폰 폭에서 가운데 둘 자리 (없으면 누르는 자리)
+  const left = Math.min(0, Math.max(W - w, W / 2 - fx * w));
+  const top = h < H ? (H - h) / 2 : Math.min(0, Math.max(H - h, H / 2 - fy * h));
   Object.assign(im.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
   if (s.x != null) { const tap = pc ? $('#pcTap') : $('#phoneTap'); tap.style.left = (left + x * w) + 'px'; tap.style.top = (top + y * h) + 'px'; }
 }
