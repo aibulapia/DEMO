@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Safety Stock 30초 데모 · 안전용품 재고관리</title>
+<meta name="description" content="안전용품 재고관리(Safety Stock) 주요 기능을 30초로 보여주는 데모 겸 사용 안내">
+<link rel="icon" href="img/app-icon.png">
+<style>
+  :root { --navy: #0d2557; --navy2: #15357a; --blue: #2563eb; --green: #15803d; --ink: #0f172a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; background: var(--navy); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 14px; }
+  .player { width: min(1100px, 100%); }
+  .stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: radial-gradient(120% 90% at 50% 0%, #1d3f8a 0%, var(--navy) 70%);
+    border-radius: 18px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); cursor: pointer; user-select: none; }
+  .chip { position: absolute; top: 3%; left: 3%; z-index: 5; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 999px; padding: .35em .9em; font-weight: 800; font-size: clamp(11px, 1.6vw, 16px); transition: opacity .3s; }
+  .chip .dev { opacity: .75; font-weight: 600; margin-left: .4em; }
+  /* 기기 틀 */
+  .device { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); opacity: 0; transition: opacity .45s; }
+  .device.on { opacity: 1; }
+  .phone { height: 80%; aspect-ratio: 600 / 1298; border-radius: 9% / 4.2%; background: #0b1020; padding: 2.2% 2.4%; box-shadow: 0 0 0 2px #2b3a5c, 0 18px 40px rgba(0,0,0,.45); }
+  .laptop { width: 74%; }
+  .laptop .lid { background: #0b1020; border-radius: 14px 14px 0 0; padding: 1.6% 1.6% 1.2%; box-shadow: 0 0 0 2px #2b3a5c; }
+  .laptop .base { height: 14px; margin: 0 -5%; background: linear-gradient(#c8cfdb, #9aa4b5); border-radius: 0 0 14px 14px; }
+  .screen { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 6.5% / 3%; background: #fff; }
+  .laptop .screen { aspect-ratio: 1280 / 764; height: auto; border-radius: 4px; }
+  .screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity .45s, transform 3s ease-out; }
+  .screen img.on { opacity: 1; }
+  .phone .screen img { object-fit: contain; }
+  .laptop .screen img.on.zoom { transform: scale(1.06); }
+  /* 폰 화면에서만: PC 장면을 누르는 자리 중심으로 크게 확대 */
+  .laptop .screen img.on.zoom.pz { transform: scale(2.3); transition: transform 1.2s ease-in-out; }
+  /* 누르는 위치 표시 */
+  .tap { position: absolute; width: 9%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #f59e0b; transform: translate(-50%, -50%) scale(.4);
+    opacity: 0; pointer-events: none; z-index: 3; }
+  .laptop .tap { width: 4.2%; }
+  .tap.go { animation: tap 1.1s ease-out .35s 2; }
+  @keyframes tap { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
+  /* 자막 */
+  .cap { position: absolute; left: 50%; bottom: 3.5%; transform: translateX(-50%); width: 92%; text-align: center; z-index: 5;
+    font-size: clamp(14px, 2.6vw, 28px); font-weight: 800; line-height: 1.35; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  .cap small { display: block; font-size: .62em; font-weight: 600; opacity: .85; margin-top: .25em; }
+  /* 시작·끝 화면 */
+  .title { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2%; opacity: 0; transition: opacity .45s; text-align: center; }
+  .title.on { opacity: 1; }
+  .title img.logo { width: 16%; max-width: 150px; border-radius: 22%; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .title h1 { margin: 0; font-size: clamp(24px, 5.4vw, 58px); letter-spacing: -.02em; }
+  .title p { margin: 0; font-size: clamp(13px, 2.2vw, 24px); opacity: .9; font-weight: 600; }
+  .title .pills { display: flex; gap: .6em; flex-wrap: wrap; justify-content: center; margin-top: 1%; font-size: clamp(11px, 1.6vw, 16px); }
+  .title .pills span { background: rgba(255,255,255,.14); border-radius: 999px; padding: .3em .8em; }
+  .title .url { font-size: clamp(16px, 3.2vw, 34px); font-weight: 800; color: #fde047; }
+  .title .maker { display: flex; align-items: center; gap: .5em; font-size: clamp(12px, 1.8vw, 18px); opacity: .9; }
+  .title .maker img { width: 2em; height: 2em; }
+  /* 재생 안내 */
+  .paused { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.35); z-index: 8; font-size: clamp(16px, 3vw, 30px); font-weight: 800; }
+  .stage.is-paused .paused { display: flex; }
+  /* 아래 조작줄 */
+  .bar { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+  .bar button { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 10px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+  .bar button:hover { background: rgba(255,255,255,.2); }
+  .track { flex: 1; display: flex; gap: 6px; }
+  .seg { flex: var(--w); height: 8px; border-radius: 4px; background: rgba(255,255,255,.18); overflow: hidden; cursor: pointer; position: relative; }
+  .seg i { position: absolute; inset: 0; width: 0; background: #fde047; }
+  .time { font-variant-numeric: tabular-nums; opacity: .85; min-width: 4.5em; text-align: right; }
+  .scenes { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13px; opacity: .85; }
+  .scenes button { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 2px 0; }
+  .scenes button.on { color: #fde047; font-weight: 800; }
+  .foot { margin-top: 14px; font-size: 13px; opacity: .75; text-align: center; }
+  .foot a { color: #fde047; }
+  @media (max-width: 640px) { .stage { aspect-ratio: 3 / 4; } .laptop { width: 94%; } .phone { height: 74%; } .scenes { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .screen img, .device, .title { transition: none; } .tap.go { animation: none; } .laptop .screen img.on.zoom, .laptop .screen img.on.zoom.pz { transform: none; } }
+</style>
+</head>
+<body>
+<div class="player">
+  <div class="stage" id="stage" role="region" aria-label="Safety Stock 30초 데모 (누르면 멈춤·재생)">
+    <div class="chip" id="chip"></div>
+
+    <div class="title" id="intro">
+      <img class="logo" src="img/app-icon.png" alt="">
+      <h1>Safety Stock</h1>
+      <p>안전용품 재고관리 — 폰과 PC에서 하나로</p>
+      <div class="pills"><span>📱 입고·출고</span><span>🖥 재고·품목·보고서</span><span>무료 · 설치형 웹앱</span></div>
+    </div>
+
+    <div class="device phone" id="phone"><div class="screen" id="phoneScreen"><div class="tap" id="phoneTap"></div></div></div>
+    <div class="device laptop" id="laptop"><div class="lid"><div class="screen" id="pcScreen"><div class="tap" id="pcTap"></div></div></div><div class="base"></div></div>
+
+    <div class="title" id="outro">
+      <img class="logo" src="img/app-icon.png" alt="">
+      <h1>Safety Stock</h1>
+      <div class="url">www.51work.bid/stock</div>
+      <p>휴대폰은 접속 후 '앱 설치' 또는 '홈 화면에 추가'</p>
+      <div class="maker"><img src="img/51work.svg" alt="">51WORK · Vibe Coding Lab</div>
+    </div>
+
+    <div class="cap" id="cap" aria-live="polite"></div>
+    <div class="paused">▶ 눌러서 계속 보기</div>
+  </div>
+
+  <div class="bar">
+    <button id="play" type="button" aria-label="멈춤">❚❚</button>
+    <div class="track" id="track"></div>
+    <span class="time" id="time">0 / 30초</span>
+  </div>
+  <div class="scenes" id="scenes"></div>
+  <div class="foot">화면은 시험용 예시 데이터입니다 · <a href="https://www.51work.bid/stock" target="_blank" rel="noopener">앱 바로가기</a> · <a href="https://www.51work.bid/" target="_blank" rel="noopener">51WORK</a></div>
+</div>
+
+<script>
+// 장면: dev = intro | phone | pc | outro, 화면(img)마다 시간(초)·누르는 위치(x,y 비율)
+const SCENES = [
+  { name: '시작', dev: 'intro', shots: [{ t: 3 }], cap: '' },
+  { name: '설치·로그인', dev: 'phone', label: '📱 스마트폰',
+    cap: 'QR 찍고 로그인<small>앱처럼 홈 화면에 설치해서 바로 실행</small>',
+    shots: [{ img: 'm_qr', t: 1.4, x: .5, y: .444 }, { img: 'm_login', t: 1.3, x: .5, y: .594 }, { img: 'm_home', t: 1.3, x: .732, y: .27 }] },
+  { name: '입고·출고', dev: 'phone', label: '📱 스마트폰',
+    cap: '여러 품목을 장바구니에 담아 한 번에<small>같은 품명은 묶어서 규격 버튼으로 · 부서·수령인은 한 번만</small>',
+    shots: [{ img: 'm_out_spec', t: 2.8, x: .756, y: .308 }, { img: 'm_out_cart', t: 3, x: .5, y: .878 }, { img: 'm_out_saved', t: 2.2, x: .5, y: .94 }] },
+  { name: '재고·품목 정보', dev: 'pc', label: '🖥 PC',
+    cap: '분류별 재고와 부족 품목이 한눈에<small>품목을 누르면 사진·정보 창 — 오른쪽 칸에서 바로 입고·출고</small>',
+    shots: [{ img: 'pc_stock', t: 2.5, x: .78, y: .453 }, { img: 'pc_item', t: 2.4, x: .185, y: .917 }, { img: 'pc_item_side', t: 2.1, x: .824, y: .712 }] },
+  { name: '보고서·관리', dev: 'pc', label: '🖥 PC',
+    cap: '사진 들어간 엑셀 보고서 · 관리도 간단하게<small>엑셀로 품목 정보 한 번에 채우기 · 가입 승인</small>',
+    shots: [{ img: 'pc_report', t: 2.2, x: .83, y: .913 }, { img: 'pc_fill', t: 2, x: .848, y: .915 }, { img: 'pc_users', t: 1.8, x: .836, y: .359 }] },
+  { name: '끝', dev: 'outro', shots: [{ t: 2 }], cap: '' },
+];
+const $ = (s) => document.querySelector(s);
+const stage = $('#stage');
+// 타임라인 펼치기
+const steps = []; let T = 0;
+SCENES.forEach((sc, si) => sc.shots.forEach((sh, k) => { steps.push({ ...sh, si, k, start: T }); T += sh.t; }));
+const TOTAL = T;
+const sceneStart = SCENES.map((_, si) => steps.find((s) => s.si === si).start);
+const sceneLen = SCENES.map((sc) => sc.shots.reduce((a, b) => a + b.t, 0));
+// 화면 그림 미리 만들기
+const imgs = {};
+for (const s of steps) {
+  if (!s.img || imgs[s.img]) continue;
+  const im = new Image(); im.src = `img/${s.img}.webp`; im.alt = ''; im.decoding = 'async';
+  (s.img.startsWith('m_') ? $('#phoneScreen') : $('#pcScreen')).appendChild(im);
+  imgs[s.img] = im;
+}
+// 진행 막대·장면 목록
+$('#track').innerHTML = SCENES.map((sc, si) => `<div class="seg" style="--w:${sceneLen[si]}" data-si="${si}" title="${sc.name}"><i></i></div>`).join('');
+$('#scenes').innerHTML = SCENES.map((sc, si) => `<button type="button" data-si="${si}">${sc.label ? `${si}. ` : ''}${sc.name}</button>`).join('');
+
+let t = 0; let playing = true; let last = performance.now(); let cur = -1; let pzTimer = 0;
+function show(stepIdx) {
+  if (stepIdx === cur) return; cur = stepIdx;
+  const s = steps[stepIdx]; const sc = SCENES[s.si];
+  $('#intro').classList.toggle('on', sc.dev === 'intro');
+  $('#outro').classList.toggle('on', sc.dev === 'outro');
+  $('#phone').classList.toggle('on', sc.dev === 'phone');
+  $('#laptop').classList.toggle('on', sc.dev === 'pc');
+  $('#chip').style.opacity = sc.label ? 1 : 0;
+  $('#chip').innerHTML = sc.label ? `${s.si}. ${sc.name}<span class="dev">${sc.label}</span>` : '';
+  $('#cap').innerHTML = sc.cap;
+  for (const [n, im] of Object.entries(imgs)) im.classList.toggle('on', n === s.img), im.classList.toggle('zoom', n === s.img && sc.dev === 'pc');
+  // 폰 화면: PC 장면은 0.6초 뒤 누르는 자리 중심으로 2.3배 확대
+  clearTimeout(pzTimer);
+  for (const im of Object.values(imgs)) im.classList.remove('pz');
+  if (s.img && s.x != null && sc.dev === 'pc' && matchMedia('(max-width: 640px)').matches) {
+    const im = imgs[s.img];
+    im.style.transformOrigin = `${s.x * 100}% ${s.y * 100}%`;
+    pzTimer = setTimeout(() => im.classList.add('pz'), 600);
+  }
+  const tap = sc.dev === 'phone' ? $('#phoneTap') : $('#pcTap');
+  $('#phoneTap').classList.remove('go'); $('#pcTap').classList.remove('go');
+  if (s.img && s.x != null) { tap.style.left = s.x * 100 + '%'; tap.style.top = s.y * 100 + '%'; void tap.offsetWidth; tap.classList.add('go'); }
+  document.querySelectorAll('#scenes button').forEach((b) => b.classList.toggle('on', +b.dataset.si === s.si));
+}
+function paint() {
+  let i = steps.findIndex((s) => t < s.start + s.t); if (i < 0) i = steps.length - 1;
+  show(i);
+  document.querySelectorAll('.seg').forEach((g) => {
+    const si = +g.dataset.si; const p = Math.min(Math.max((t - sceneStart[si]) / sceneLen[si], 0), 1);
+    g.firstChild.style.width = p * 100 + '%';
+  });
+  $('#time').textContent = `${Math.min(Math.floor(t), TOTAL)} / ${TOTAL}초`;
+}
+function setPlaying(on) {
+  playing = on; last = performance.now();
+  stage.classList.toggle('is-paused', !on);
+  $('#play').textContent = on ? '❚❚' : (t >= TOTAL ? '↻' : '▶');
+  $('#play').setAttribute('aria-label', on ? '멈춤' : '재생');
+}
+function seek(sec) { t = Math.max(0, Math.min(sec, TOTAL - 0.01)); cur = -1; last = performance.now(); paint(); }
+function loop(now) {
+  if (playing) {
+    t += (now - last) / 1000;
+    if (t >= TOTAL) { t = TOTAL; paint(); setPlaying(false); stage.classList.remove('is-paused'); $('#play').textContent = '↻'; }
+  }
+  last = now; paint(); requestAnimationFrame(loop);
+}
+stage.addEventListener('click', () => { if (t >= TOTAL) { seek(0); setPlaying(true); } else setPlaying(!playing); });
+$('#play').addEventListener('click', () => { if (t >= TOTAL) { seek(0); setPlaying(true); } else setPlaying(!playing); });
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-si]'); if (!b) return;
+  seek(sceneStart[+b.dataset.si]); setPlaying(true);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') { e.preventDefault(); stage.click(); }
+  if (e.key === 'ArrowRight') seek(t + 3);
+  if (e.key === 'ArrowLeft') seek(t - 3);
+});
+// 화면 밖으로 나가면 멈춤(배터리·데이터 절약)
+document.addEventListener('visibilitychange', () => { if (document.hidden && playing) setPlaying(false); });
+paint(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
