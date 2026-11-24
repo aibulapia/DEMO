@@ -7,13 +7,13 @@
 <meta name="description" content="안전용품 재고관리(Safety Stock) 주요 기능을 30초로 보여주는 데모 겸 사용 안내">
 <link rel="icon" href="img/app-icon.png">
 <style>
-  :root { --navy: #0d2557; --navy2: #15357a; --blue: #2563eb; --green: #15803d; --ink: #0f172a; }
+  :root { --navy: #1e40af; --navy2: #2563eb; /* 배경: 밝은 파랑 (예전 남색 #0d2557) */ --blue: #2563eb; --green: #15803d; --ink: #0f172a; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body { font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; background: var(--navy); color: #fff;
     display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 14px; }
   .player { width: min(1100px, 100%); }
-  .stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: radial-gradient(120% 90% at 50% 0%, #1d3f8a 0%, var(--navy) 70%);
+  .stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: radial-gradient(120% 90% at 50% 0%, #3b82f6 0%, #1d4ed8 70%);
     border-radius: 18px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); cursor: pointer; user-select: none; }
   .chip { position: absolute; top: 3%; left: 3%; z-index: 5; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25);
     border-radius: 999px; padding: .35em .9em; font-weight: 800; font-size: clamp(11px, 1.6vw, 16px); transition: opacity .3s; }
