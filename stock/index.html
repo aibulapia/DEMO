@@ -70,12 +70,16 @@
   @media (max-width: 640px) { .stage { aspect-ratio: 3 / 4; } .laptop { width: 94%; } .phone { height: 74%; } .scenes { display: none; } }
   /* 휴대폰 폭: 기기 틀을 빼고 앱 화면을 무대에 꽉 채운다. 그림 위치·크기는 스크립트(fitM)가 누르는 자리 중심으로 정한다 */
   .stage.m { aspect-ratio: auto; height: min(190vw, calc(100vh - 104px)); min-height: 420px; }
-  .stage.m .device { left: 3%; right: 3%; top: 8%; bottom: 13%; width: auto; height: auto; aspect-ratio: auto; transform: none; padding: 0; background: none; box-shadow: none; border-radius: 0; }
+  .stage.m .device { left: 3%; right: 3%; top: 8%; bottom: 3%; width: auto; height: auto; aspect-ratio: auto; transform: none; padding: 0; background: none; box-shadow: none; border-radius: 0; }
   .stage.m .laptop .lid { height: 100%; padding: 0; background: none; box-shadow: none; border-radius: 0; }
   .stage.m .laptop .base { display: none; }
   .stage.m .screen, .stage.m .laptop .screen { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
   .stage.m .screen img { object-fit: fill; transform: none !important; transition: opacity .45s; }
   .stage.m .tap, .stage.m .laptop .tap { width: 13%; }
+  .stage.m .cap { bottom: calc(3% + 14px); width: auto; max-width: 86%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 19px; line-height: 1.3; padding: .5em 1.1em; border-radius: 12px; background: rgba(15,23,42,.74);
+    box-shadow: 0 6px 18px rgba(0,0,0,.35); text-shadow: 0 1px 2px rgba(0,0,0,.5); backdrop-filter: blur(2px); }
+  .cap:empty { display: none; }
   @media (prefers-reduced-motion: reduce) { .screen img, .device, .title { transition: none; } .tap.go { animation: none; } .laptop .screen img.on.zoom { transform: none; } }
 </style>
 </head>
@@ -88,7 +92,7 @@
       <img class="logo" src="img/app-icon.png" alt="">
       <h1>Safety Stock</h1>
       <p>안전용품 재고관리 — 폰과 PC에서 하나로</p>
-      <div class="pills"><span>📱 입고·출고</span><span>🖥 재고·품목·보고서</span><span>무료 · 설치형 웹앱</span></div>
+      <div class="pills"><span>📱 입고·출고</span><span>🖥 품목·보고서</span><span>무료 웹앱</span></div>
     </div>
 
     <div class="device phone" id="phone"><div class="screen" id="phoneScreen"><div class="tap" id="phoneTap"></div></div></div>
@@ -119,16 +123,21 @@
 const SCENES = [
   { name: '시작', dev: 'intro', shots: [{ t: 3 }], cap: '' },
   { name: '설치·로그인', dev: 'phone', label: '📱 스마트폰',
-    cap: 'QR 찍고 로그인<small>앱처럼 홈 화면에 설치해서 바로 실행</small>',
-    shots: [{ img: 'm_qr', t: 2, x: .5, y: .444 }, { img: 'm_home', t: 2, x: .732, y: .27 }] }, // 로그인 화면은 뺌 (총 30초 유지)
+    cap: 'QR 로그인',
+    shots: [{ img: 'm_qr', t: 2, x: .5, y: .444, z: 1.6, fy: .42 }, { img: 'm_home', t: 2, x: .732, y: .27, z: 1.3, fx: .5, fy: .3 }] }, // 로그인 화면은 뺌 (총 30초 유지)
   { name: '입고·출고', dev: 'phone', label: '📱 스마트폰',
-    cap: '여러 품목을 장바구니에 담아 한 번에<small>같은 품명은 묶어서 규격 버튼으로 · 부서·수령인은 한 번만</small>',
-    shots: [{ img: 'm_out_spec', t: 2.8, x: .756, y: .308 }, { img: 'm_out_cart', t: 3, x: .5, y: .878 }, { img: 'm_out_saved', t: 2.2, x: .5, y: .94 }] },
+    cap: '장바구니 기능',
+    shots: [
+      { img: 'm_out_spec', t: 1.4, x: .756, y: .308, z: 1.5, fx: .5, fy: .3 },   // 규격 고르기
+      { img: 'm_out_spec', t: 1.4, x: .5, y: .655, z: 1.5, fx: .5, fy: .58 },    // → 수량·장바구니 담기 (화면 이동)
+      { img: 'm_out_cart', t: 1.5, z: 1.5, fx: .5, fy: .36 },                      // 장바구니 목록
+      { img: 'm_out_cart', t: 1.5, x: .5, y: .878, z: 1.5, fx: .5, fy: .8 },      // → 출고 저장
+      { img: 'm_out_saved', t: 2.2, x: .5, y: .94, z: 1.6, fx: .5, fy: .9 }] },
   { name: '재고·품목 정보', dev: 'pc', label: '🖥 PC',
-    cap: '분류별 재고와 부족 품목이 한눈에<small>품목을 누르면 사진·정보 창 — 오른쪽 칸에서 바로 입고·출고</small>',
+    cap: '안전재고 알림',
     shots: [{ img: 'pc_stock', t: 2.5, x: .78, y: .453 }, { img: 'pc_item', t: 2.4, x: .185, y: .917 }, { img: 'pc_item_side', t: 2.1, x: .824, y: .712 }] },
   { name: '보고서', dev: 'pc', label: '🖥 PC',
-    cap: '사진 들어간 엑셀 보고서를 바로<small>기간을 고르고 만들기 → 미리 보고 엑셀 다운로드</small>',
+    cap: '엑셀 보고서 생성',
     // 보고서 만들기 → 엑셀 화면 (사용자 승인·품목 채우기 화면은 뺌, 총 30초 유지). z = 휴대폰 폭 확대 배율
     shots: [{ img: 'pc_report', t: 3, x: .83, y: .913 }, { img: 'pc_excel', t: 3, x: .654, y: .802, fx: .17, fy: .55 }] },
   { name: '끝', dev: 'outro', shots: [{ t: 2 }], cap: '' },
@@ -162,19 +171,22 @@ function fitM() {
   const on = MQ.matches; stage.classList.toggle('m', on);
   const s = steps[cur]; const sc = s && SCENES[s.si];
   for (const [n, im] of Object.entries(imgs)) {
-    if (!on || !s || n !== s.img) { im.style.left = im.style.top = im.style.width = im.style.height = ''; }
+    if (!on || !s || n !== s.img) { im.style.left = im.style.top = im.style.width = im.style.height = im.style.transition = ''; }
   }
-  if (!on || !s || !s.img) return;
+  if (!on || !s || !s.img) { fitM.prevImg = null; return; }
   const im = imgs[s.img]; const box = im.parentElement; const W = box.clientWidth; const H = box.clientHeight;
   if (!W || !H) return;
   const pc = sc.dev === 'pc';
   const r = im.naturalWidth ? im.naturalHeight / im.naturalWidth : RATIO[pc ? 'pc' : 'phone'];
-  let w = W * (pc ? (s.z || 2.3) : 1); let h = w * r;
+  let w = W * (s.z || (pc ? 2.3 : 1)); let h = w * r;
   if (h < H && !s.wide) { h = H; w = h / r; } // 칸보다 낮으면 높이에 맞춰 키움 (빈 곳 없게). wide 화면은 그대로 두고 위아래 가운데
   const x = s.x != null ? s.x : .5; const y = s.y != null ? s.y : 0;
   const fx = s.fx != null ? s.fx : x; const fy = s.fy != null ? s.fy : y; // 휴대폰 폭에서 가운데 둘 자리 (없으면 누르는 자리)
   const left = Math.min(0, Math.max(W - w, W / 2 - fx * w));
-  const top = h < H ? (H - h) / 2 : Math.min(0, Math.max(H - h, H / 2 - fy * h));
+  const capH = $('#cap').textContent ? $('#cap').offsetHeight + 16 : 0; // 화면 아래에 겹친 자막 높이
+  const top = h < H ? (H - h) / 2 : Math.min(0, Math.max(H - h - capH, H * .45 - fy * h));
+  im.style.transition = fitM.prevImg === s.img ? 'opacity .45s, left .7s ease, top .7s ease, width .7s ease, height .7s ease' : '';
+  fitM.prevImg = s.img;
   Object.assign(im.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
   if (s.x != null) { const tap = pc ? $('#pcTap') : $('#phoneTap'); tap.style.left = (left + x * w) + 'px'; tap.style.top = (top + y * h) + 'px'; }
 }
